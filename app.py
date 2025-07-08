@@ -10,11 +10,19 @@ pipe_lr = joblib.load(open("text_emotion.pkl", "rb"))
 sentiment_pipe = joblib.load(open("text_sentiment.pkl", "rb"))
 
 
-emotions_emoji_dict = {"anger": "😠", "disgust": "🤮", "fear": "😨😱", "happy": "🤗", "joy": "😂", "neutral": "😐", "sad": "😔",
-                       "sadness": "😔", "shame": "😳", "surprise": "😮"}
+emotions_emoji_dict = {
+    "anger": "😠",
+    "fear": "😨",
+    "joy": "😂",
+    "love": "❤️",
+    "sadness": "😔",
+    "surprise": "😮"
+}
 
 sentiment_emoji_dict = {
-    "Positive": "😊", "Negative": "😞", "Neutral": "😐"
+    "positive": "😊",
+    "negative": "😞",
+    "neutral": "😐"
 }
 
 def predict_emotions(docx):
@@ -38,6 +46,7 @@ def get_sentiment_proba(docx):
 def main():
     st.title("Text Emotion & Sentiment Analyser")
     st.subheader("Detect Emotions & Sentiments In Text")
+    st.info("💡 Tip: Try short, tweet-like sentences for best sentiment detection!")
 
     analysis_mode = st.selectbox("Choose Analysis Type", ["Emotion Detection", "Sentiment Analysis"])
 
@@ -69,9 +78,15 @@ def main():
                 st.altair_chart(fig, use_container_width=True)
 
         else:  # Sentiment Analysis
-            prediction = predict_sentiment(raw_text)
-            probability = get_sentiment_proba(raw_text)
-            emoji_icon = sentiment_emoji_dict.get(prediction, "")
+            import neattext.functions as nfx
+            raw_text_clean = nfx.remove_userhandles(raw_text)
+            raw_text_clean = nfx.remove_stopwords(raw_text_clean)
+
+            prediction = predict_sentiment(raw_text_clean)
+            probability = get_sentiment_proba(raw_text_clean)
+
+            emoji_icon = sentiment_emoji_dict.get(prediction.lower(), "")
+
 
             with col1:
                 st.success("Original Text")
@@ -92,6 +107,8 @@ def main():
                 proba_df = pd.DataFrame(probability, columns=sentiment_pipe.classes_)
                 proba_df_clean = proba_df.T.reset_index()
                 proba_df_clean.columns = ["sentiment", "probability"]
+                proba_df_clean = proba_df_clean.sort_values("probability", ascending=False)
+
                 fig = alt.Chart(proba_df_clean).mark_bar().encode(x='sentiment', y='probability', color='sentiment')
                 st.altair_chart(fig, use_container_width=True)
   
