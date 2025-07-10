@@ -155,7 +155,7 @@ def submit_feedback(name, email, feedback_text):
     creds_json = st.secrets["google"]["credentials"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(creds_json), scope)
     client = gspread.authorize(creds)
-    sheet = client.open("TonoSense Feedback").sheet1
+    sheet = client.open("TonoSense").sheet1
 
     # Append feedback row
     sheet.append_row([
