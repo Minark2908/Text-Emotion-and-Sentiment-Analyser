@@ -152,14 +152,29 @@ def export_to_pdf(user_name, user_text, prediction, confidence, analysis_type, p
 
 def submit_feedback(name, email, feedback_text):
     try:
-        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_name("google_credentials.json", scope)
+        scope = [
+            "https://spreadsheets.google.com/feeds",
+            "https://www.googleapis.com/auth/drive"
+        ]
+        creds = ServiceAccountCredentials.from_json_keyfile_name(
+            "tonosense-11aba885f112.json",
+            scope
+        )
         client = gspread.authorize(creds)
-        sheet = client.open("TonoSense Feedback").sheet1
-        sheet.append_row([datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), name, email, feedback_text])
+        sheet = client.open("TonoSense").sheet1
+
+        # Append the row
+        response = sheet.append_row([
+            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            name,
+            email,
+            feedback_text
+        ])
+        # `append_row` returns a list — if no exception, it's OK
         return True
+
     except Exception as e:
-        st.error(f"Failed to submit feedback: {e}")
+        st.error(f"❌ Feedback submission failed.\n\nDetails: {e}")
         return False
 
 def transcribe_voice():
