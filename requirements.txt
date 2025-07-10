@@ -12,4 +12,3 @@ gspread
 oauth2client
 SpeechRecognition
 plotly
-pyaudio
