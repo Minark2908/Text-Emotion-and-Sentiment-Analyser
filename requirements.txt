@@ -1,7 +1,13 @@
 streamlit
+streamlit-lottie
 pandas
 numpy
+altair
 scikit-learn
 joblib
-altair
-neattext
+textblob
+fpdf2
+matplotlib
+gspread
+oauth2client
+SpeechRecognition
