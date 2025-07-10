@@ -11,3 +11,4 @@ matplotlib
 gspread
 oauth2client
 SpeechRecognition
+plotly
