@@ -20,6 +20,7 @@ import time
 import plotly.express as px
 from chatbot import get_chatbot_response
 from music_suggester import get_music_suggestion
+from history import save_to_google_sheet
 
 
 
@@ -555,6 +556,15 @@ def show_main_page():
             "Confidence": round(confidence, 2),
             "Mode": analysis_mode
         }
+        # ✅ Save to Google Sheets
+        save_to_google_sheet(
+            user_name=user_name,
+            text=raw_text,
+            prediction=prediction,
+            confidence=confidence,
+            analysis_type=analysis_mode
+        )
+
 
         if os.path.exists(history_file) and os.path.getsize(history_file) > 0:
             history_df = pd.read_csv(history_file)

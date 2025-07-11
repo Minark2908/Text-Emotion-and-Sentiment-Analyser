@@ -1,27 +1,19 @@
-import os
-import pandas as pd
+# utils/history_google.py
 
-HISTORY_FILE = "history.csv"
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
 
-def init_history():
-    if not os.path.exists(HISTORY_FILE):
-        df = pd.DataFrame(columns=["user_name", "text", "prediction", "confidence", "analysis_type"])
-        df.to_csv(HISTORY_FILE, index=False)
+# Google Sheets auth
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+creds = ServiceAccountCredentials.from_json_keyfile_name("tonosense-11aba885f112.json", scope)
+client = gspread.authorize(creds)
 
-def save_to_history(user_name, text, prediction, confidence, analysis_type):
-    new_entry = pd.DataFrame([{
-        "user_name": user_name,
-        "text": text,
-        "prediction": prediction,
-        "confidence": confidence,
-        "analysis_type": analysis_type
-    }])
-    df = pd.read_csv(HISTORY_FILE)
-    df = pd.concat([df, new_entry], ignore_index=True)
-    df.to_csv(HISTORY_FILE, index=False)
+# Open the sheet (change to your sheet name)
+SHEET_NAME = "TonoSense_History"
+sheet = client.open(SHEET_NAME).sheet1
 
-def load_user_history(user_name):
-    if os.path.exists(HISTORY_FILE):
-        df = pd.read_csv(HISTORY_FILE)
-        return df[df["user_name"] == user_name]
-    return pd.DataFrame()
+def save_to_google_sheet(user_name, text, prediction, confidence, analysis_type):
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    row = [now, user_name, text, prediction, round(confidence, 2), analysis_type]
+    sheet.append_row(row)
