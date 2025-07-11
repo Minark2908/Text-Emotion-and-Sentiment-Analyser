@@ -1,25 +1,33 @@
-import gspread
-import streamlit as st
+import os
+import pandas as pd
 import datetime
-from oauth2client.service_account import ServiceAccountCredentials
 
-# Define scope for Google Sheets API
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+HISTORY_FILE = "history.csv"
 
-# Load credentials from Streamlit secrets
-creds = ServiceAccountCredentials.from_json_keyfile_dict(
-    st.secrets["gcp_service_account"], scope
-)
+def init_history():
+    if not os.path.exists(HISTORY_FILE):
+        df = pd.DataFrame(columns=["Timestamp", "User", "Text", "Prediction", "Confidence", "Mode"])
+        df.to_csv(HISTORY_FILE, index=False)
 
-# Authorize gspread client
-client = gspread.authorize(creds)
-
-# Open the Google Sheet
-SHEET_NAME = "TonoSense_History"  # Your sheet name
-worksheet = client.open(SHEET_NAME).sheet1
-
-# Function to save history to Google Sheet
-def save_to_google_sheet(user_name, text, prediction, confidence, analysis_type):
+def save_to_history(user_name, text, prediction, confidence, analysis_type):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    data = [timestamp, user_name, text, prediction, round(confidence, 2), analysis_type]
-    worksheet.append_row(data)
+    new_entry = pd.DataFrame([{
+        "Timestamp": timestamp,
+        "User": user_name,
+        "Text": text,
+        "Prediction": prediction,
+        "Confidence": round(confidence, 2),
+        "Mode": analysis_type
+    }])
+    if os.path.exists(HISTORY_FILE) and os.path.getsize(HISTORY_FILE) > 0:
+        df = pd.read_csv(HISTORY_FILE)
+        df = pd.concat([df, new_entry], ignore_index=True)
+    else:
+        df = new_entry
+    df.to_csv(HISTORY_FILE, index=False)
+
+def load_user_history(user_name):
+    if os.path.exists(HISTORY_FILE):
+        df = pd.read_csv(HISTORY_FILE)
+        return df[df["User"] == user_name]
+    return pd.DataFrame()
